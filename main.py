@@ -22,5 +22,11 @@ def fortune(req: FortuneRequest, x_internal_key: str | None = Header(default=Non
     prompt = (
         f"생년월일이 {req.birth_date}인 사람의 {date.today()} 운세를 "
         "3문장으로 재미있게 알려줘. 건강·금전에 대한 단정적인 조언은 하지 마."
+        "생년월일과 날짜는 답변에 쓰지 말고, 첫 문장부터 바로 운세 내용으로 시작해."
+        "HTML 태그는 쓰지 말고, 문장마다 줄을 바꿔서(엔터) 써 줘."
     )
-    return FortuneResponse(content=llm_client.ask(prompt))
+    try:
+        return FortuneResponse(content=llm_client.ask(prompt))
+    except Exception as e:
+        print("AI 호출 실패:", e)
+        raise HTTPException(status_code=503, detail="AI 응답을 받을 수 없음")

@@ -1,14 +1,15 @@
-#Claude 호출
+from google import genai
+from google.genai import types
+from config import GEMINI_API_KEY, GEMINI_MODEL
 
-import anthropic
-from config import ANTHROPIC_API_KEY
-
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def ask(prompt: str) -> str:
-    response = client.messages.create(
-        model="claude-haiku-5-5",
-        max_tokens=300,
-        messages=[{"role": "user", "content": prompt}],
+    response = client.models.generate_content(
+        model=GEMINI_MODEL, 
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            max_output_tokens=300,
+        )
     )
-    return response.content[0].text
+    return response.text
