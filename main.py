@@ -5,6 +5,7 @@ from fastapi import FastAPI, Header, HTTPException
 from schemas import FortuneRequest, FortuneResponse
 from config import INTERNAL_KEY
 import llm_client
+from google.genai import errors
 
 app = FastAPI()
 
@@ -27,6 +28,10 @@ def fortune(req: FortuneRequest, x_internal_key: str | None = Header(default=Non
     )
     try:
         return FortuneResponse(content=llm_client.ask(prompt))
-    except Exception as e:
-        print("AI 호출 실패:", e)
-        raise HTTPException(status_code=503, detail="AI 응답을 받을 수 없음")
+    except errors.APIError as e:
+        print("AI 호출 실패1:", e)
+        if e.code == 503:      # Gemini: high demand
+            raise HTTPException(status_code=503, detail="AI_BUSY")
+        raise HTTPException(status_code=502, detail="AI_ERROR")
+    except Exception:
+        raise HTTPException(status_code=502, detail="AI_ERROR")
