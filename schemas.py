@@ -8,3 +8,9 @@ class FortuneRequest(BaseModel):
 
 class FortuneResponse(BaseModel):
     content: str
+
+class AskRequest(BaseModel):
+    question: str
+
+class AskResponse(BaseModel):
+    answer: str
