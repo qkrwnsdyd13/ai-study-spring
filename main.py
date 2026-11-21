@@ -6,6 +6,8 @@ from schemas import FortuneRequest, FortuneResponse
 from config import INTERNAL_KEY
 import llm_client
 from google.genai import errors
+from search import answer
+from schemas import AskRequest, AskResponse
 
 app = FastAPI()
 
@@ -31,6 +33,19 @@ def fortune(req: FortuneRequest, x_internal_key: str | None = Header(default=Non
     except errors.APIError as e:
         print("AI 호출 실패1:", e)
         if e.code == 503:      # Gemini: high demand
+            raise HTTPException(status_code=503, detail="AI_BUSY")
+        raise HTTPException(status_code=502, detail="AI_ERROR")
+    except Exception:
+        raise HTTPException(status_code=502, detail="AI_ERROR")
+
+
+@app.post("/ask", response_model=AskResponse)
+def ask(req: AskRequest, x_internal_key: str | None = Header(default=None)):
+    check_key(x_internal_key)                      # 운세와 같은 내부 키 확인
+    try:
+        return AskResponse(answer=answer(req.question))
+    except errors.APIError as e:
+        if e.code == 503:
             raise HTTPException(status_code=503, detail="AI_BUSY")
         raise HTTPException(status_code=502, detail="AI_ERROR")
     except Exception:
